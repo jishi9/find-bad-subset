@@ -41,7 +41,8 @@ class FindBadSubset(object):
         return self.test_cmd()
 
     def _display_set(self, name, set_to_print):
-        return '%s (%d): %s' % (name, len(set_to_print), ', '.join(set_to_print))
+        return '%s (%d): %s' % (
+            name, len(set_to_print), ', '.join(set_to_print))
 
     def print_status(self):
         print self._display_set('Good', self.good_set)
@@ -123,16 +124,29 @@ def to_nofail_shell_callable_with_args(cmds):
     return fun
 
 
-parser = argparse.ArgumentParser(description='Detect the subset of bad elements through bisection-based search.',
-                                 epilog="Escape any arguments that start with a '-' with '@', so that 'grep -q x' becomes 'grep @-q x'.")
+parser = argparse.ArgumentParser(
+    description='Detect the subset of bad elements through bisection-based search.',
+    epilog="Escape any arguments that start with a '-' with '@', so that 'grep -q x' becomes 'grep @-q x'.")
 
-parser.add_argument('--include-command', '-i', nargs='+', required=True,
-                    help='Command to include a number of elements in the next test. This should accept a variable number of elements as arguments.')
-parser.add_argument('--exclude-command', '-x', nargs='+', required=True,
-                    help='Command to exclude a number of elements in the next test. This should accept a variable number of elements as arguments.')
-parser.add_argument('--test-command', '-t', nargs='+', required=True,
-                    help='Command run to test whether the currently included set of elements. This should exit with zero status if all elements are "good", '
-                    + 'otherwise it should exit with a non-zero status.')
+parser.add_argument(
+    '--include-command',
+    '-i',
+    nargs='+',
+    required=True,
+    help='Command to include a number of elements in the next test. This should accept a variable number of elements as arguments.')
+parser.add_argument(
+    '--exclude-command',
+    '-x',
+    nargs='+',
+    required=True,
+    help='Command to exclude a number of elements in the next test. This should accept a variable number of elements as arguments.')
+parser.add_argument(
+    '--test-command',
+    '-t',
+    nargs='+',
+    required=True,
+    help='Command run to test whether the currently included set of elements. This should exit with zero status if all elements are "good", ' +
+    'otherwise it should exit with a non-zero status.')
 parser.add_argument('--elements', '-e', nargs='+', required=True,
                     help='The set of elements.')
 
