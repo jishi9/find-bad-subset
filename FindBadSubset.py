@@ -2,7 +2,8 @@
 
 from itertools import islice
 from Queue import PriorityQueue
-from subprocess import call
+from subprocess import call, check_call
+import sys
 import argparse
 
 def take(n, iterable):
@@ -99,29 +100,47 @@ class FindBadSubset(object):
 
 def to_shell_callable(cmds):
 	def fun():
-		return call(cmds) == 0
+		try:
+			return call(cmds) == 0
+		except OSError:
+			print >> sys.stderr, 'Could not execure command:', cmds
+			raise
 
 	return fun
 
 
 def to_nofail_shell_callable_with_args(cmds):
 	def fun(args):
-		assert call(cmds + list(args)) == 0, 'Command failed'
+		try:
+			command = cmds + list(args)
+			check_call(command)
+		except CalledProcessError:
+			print >> sys.stderr, 'Command failed:', command
+			raise
+
 
 	return fun
 
 
-parser = argparse.ArgumentParser(description='Detect the subset of bad elements through bisection-based search')
+parser = argparse.ArgumentParser(description='Detect the subset of bad elements through bisection-based search.',
+	epilog="Escape any arguments that start with a '-' with '@', so that 'grep -q x' becomes 'grep @-q x'.")
+
 parser.add_argument('--include-command', '-i', nargs='+', required=True,
 	help='Command to include a number of elements in the next test. This should accept a variable number of elements as arguments.')
 parser.add_argument('--exclude-command', '-x', nargs='+', required=True,
 	help='Command to exclude a number of elements in the next test. This should accept a variable number of elements as arguments.')
 parser.add_argument('--test-command', '-t', nargs='+', required=True,
-	help='Command run to test whether the currently included set of elements. This should exit with zero status if all elements are "good", otherwise it should exit with a non-zero status.')
+	help='Command run to test whether the currently included set of elements. This should exit with zero status if all elements are "good", '
+	+ 'otherwise it should exit with a non-zero status.')
 parser.add_argument('--elements', '-e', nargs='+', required=True,
 	help='The set of elements.')
 
 
+def unescape_dash_argument(arg):
+	if arg.startswith('@'):
+		return arg[1:]
+	else:
+		return arg
 
 def main(include_cmd, exclude_cmd, test_cmd, elements):
 	finder = FindBadSubset(include_cmd, exclude_cmd, test_cmd, elements)
@@ -132,7 +151,11 @@ def main(include_cmd, exclude_cmd, test_cmd, elements):
 
 if __name__ == '__main__':
 	args = parser.parse_args()
-	main(to_nofail_shell_callable_with_args(args.include_command),
-		 to_nofail_shell_callable_with_args(args.exclude_command),
-		 to_shell_callable(args.test_command),
+	include_command = map(unescape_dash_argument, args.include_command)
+	exclude_command = map(unescape_dash_argument, args.exclude_command)
+	test_command = map(unescape_dash_argument, args.test_command)
+
+	main(to_nofail_shell_callable_with_args(include_command),
+		 to_nofail_shell_callable_with_args(exclude_command),
+		 to_shell_callable(test_command),
 		 args.elements)
