@@ -77,7 +77,7 @@ class FindBadSubset(object):
             print '%d unknown elements currently under test' % len(unknowns)
             include_set = unknowns | self.good_set
 
-            # All included elments are good. Move them all from unknown_set to
+            # All included elements are good. Move them all from unknown_set to
             # good_set.
             if self.is_good(include_set):
                 self.unknown_set -= include_set
@@ -92,7 +92,7 @@ class FindBadSubset(object):
                     self.unknown_set -= unknowns
                     self.bad_set |= unknowns
                 # Can't tell which of the unknown elements are bad, split into
-                # two groups and enqueu.
+                # two groups and enqueue.
                 else:
                     unknowns_1, unknowns_2 = take_half(unknowns)
                     put_job(unknowns_1)
