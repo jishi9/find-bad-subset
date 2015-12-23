@@ -106,7 +106,7 @@ def to_shell_callable(cmds):
         try:
             return call(cmds) == 0
         except OSError:
-            print >> sys.stderr, 'Could not execure command:', cmds
+            print >> sys.stderr, 'Could not execute command:', cmds
             raise
 
     return fun
